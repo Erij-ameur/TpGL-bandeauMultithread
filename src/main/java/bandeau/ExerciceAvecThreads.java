@@ -1,5 +1,9 @@
 package bandeau;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 public class ExerciceAvecThreads {
 
     public static void main(String[] args) {
@@ -9,33 +13,53 @@ public class ExerciceAvecThreads {
 
     public void exemple() {
 
-        Scenario s = makeScenario();
-        // On cree les bandeaux
+        // Création des bandeaux
         var b1 = new Bandeau();
         var b2 = new Bandeau();
         var b3 = new Bandeau();
+
+        // Création des scénarios avec effets aléatoires pour chaque bandeau
+        Scenario s1 = makeRandomScenario();
+        Scenario s2 = makeRandomScenario();
+        Scenario s3 = makeRandomScenario();
+
+        // On joue les scénarios en parallèle sur les bandeaux respectifs
         System.out.println("CTRL-C pour terminer le programme");
-        // On doit jouer le scénario en même temps sur les trois bandeaux
-        // On crée un thread pour chaque bandeau
-        s.playOn(b1);
-        s.playOn(b2);
-        s.playOn(b3);
-        // On rejoue le scénario sur b1 quand le premier jeu est fini
-        s.playOn(b1);
+
+        // On crée un thread pour chaque scénario et bandeau
+        Thread t1 = new Thread(new Scenario.ScenarioRunnable(s1, b1));
+        Thread t2 = new Thread(new Scenario.ScenarioRunnable(s2, b2));
+        Thread t3 = new Thread(new Scenario.ScenarioRunnable(s3, b3));
+
+        // Lancer les threads
+        t1.start();
+        t2.start();
+        t3.start();
     }
 
-    private Scenario makeScenario() {
-        // On crée un scenario
+    // Méthode pour générer un scénario avec des effets aléatoires
+    private Scenario makeRandomScenario() {
         Scenario s = new Scenario();
-        // On lui ajoute des effets
-        s.addEffect(new RandomEffect("Le jeu du pendu", 700), 1);
-        // s.addEffect(new TeleType("Je m'affiche caractère par caractère", 100), 1);
-        // s.addEffect(new Blink("Je clignote 10x", 100), 10);
-        // s.addEffect(new Zoom("Je zoome", 50), 1);
-        // s.addEffect(new FontEnumerator(10), 1);
-        // s.addEffect(new Rainbow("Comme c'est joli !", 30), 1);
-        s.addEffect(new Rotate("2 tours à droite", 180, 4000, true), 2);
-        // s.addEffect(new Rotate("2 tours à gauche", 180, 4000, false), 2);
+        Random rand = new Random();
+
+        // Liste des effets disponibles
+        List<Effect> availableEffects = new ArrayList<>();
+        availableEffects.add(new TeleType(" Affichage caractère par caractère", 100));
+        availableEffects.add(new Blink(" Clignotement", 100));
+        availableEffects.add(new Zoom(" Zoom", 50));
+        availableEffects.add(new FontEnumerator(10));
+        availableEffects.add(new Rainbow("Arc-en-ciel", 30));
+        availableEffects.add(new Rotate("Rotation", 180, 4000, true));
+
+        // Nombre d'effets aléatoires à appliquer
+        int numberOfEffects = rand.nextInt(3) + 3;
+        for (int i = 0; i < numberOfEffects; i++) {
+            // Choisir un effet aléatoire parmi ceux disponibles
+            Effect randomEffect = availableEffects.get(rand.nextInt(availableEffects.size()));
+            // Ajouter l'effet avec un temps d'affichage aléatoire
+            s.addEffect(randomEffect, rand.nextInt(5) + 1);
+        }
+
         return s;
     }
 }
